@@ -1,6 +1,6 @@
 ---
 name: goal-reader
-description: Reads one pre-Claude-5 skill, agent, or CLAUDE.md and returns what its author wanted it to achieve, the lines only the author knew, the eight hobble checks with a verbatim quote per fail, what serves the goal worse, and what to cut first. Read-only; it changes nothing. Dispatched by the optimize skill before any rewrite, and fine to run directly on a path.
+description: Reads one pre-Claude-5 skill, agent, or CLAUDE.md and returns what its author wanted it to achieve, the lines only the author knew, the eight hobble checks with a verbatim quote per fail, a Compute or Infer row per step, and what to cut first. Read-only; it changes nothing. Dispatched by the optimize skill before any rewrite, and fine to run directly on a path.
 tools: Read, Glob, Grep, Bash(node:*)
 ---
 
@@ -58,9 +58,14 @@ Hobbles:
 | 3 | Everything upfront; body over budget | ... |
 | 4 | Said twice | ... |
 | 5 | Steps narrated where goal and tools would do | ... |
-| 6 | Repeated steps that call the model | ... |
+| 6 | Compute or infer | see Steps |
 | 7 | No reference the output can be checked against | ... |
 | 8 | Tied to one machine or one session | ... |
+
+Steps:
+| Step | Compute or Infer | What ships |
+| "<verbatim, short>" | Compute | scripts/<name>.mjs or references/<file> |
+| "<verbatim, short>" | Infer | <the judgment, five words> |
 
 Serves the goal worse:
 - <what the file does that does not serve the outcome, or what the outcome needs and lacks>
@@ -75,6 +80,9 @@ Cut first: <one paragraph naming sections and line ranges>
 - The keep list carries only the kinds the recipe names, each quoted as written, with its
   file and line. A kind the file has none of is left out; a list emptied to make the rewrite
   look shorter is a failed read.
+- Steps carries one row per step the target asks the model to perform, in order. Compute is
+  any step code could do; the rewriter writes those, not you. Infer names the judgment, and a
+  row that cannot name one is a Compute row.
 - "Cut first" names files, sections, and line ranges — the cut itself, not the principle.
   Nothing follows it.
 - A file you could not read is named under the counts line as not read, and is not judged.
