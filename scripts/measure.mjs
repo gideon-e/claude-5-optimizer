@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // measure.mjs — counts for one target: a skill folder, an agent .md, or a CLAUDE.md.
 //
-//   node scripts/measure.mjs <path>          text
-//   node scripts/measure.mjs <path> --json   the same object
+//   node scripts/measure.mjs <path>                  text
+//   node scripts/measure.mjs <path> --json           the same object
+//   node scripts/measure.mjs <path> --diff <other>   the before → after block
 //
 // Counting only. It reads; it changes nothing.
 
@@ -162,20 +163,41 @@ export function render(m) {
   ].join("\n");
 }
 
+// The before → after block: the target measured against its optimized copy.
+export function renderDiff(a, b) {
+  const plural = (x) => (x === 1 ? "file" : "files");
+  return [
+    `target: ${a.target}   kind: ${a.kind}`,
+    "",
+    "before \u2192 after",
+    `body: ${n(a.body.lines)} \u2192 ${n(b.body.lines)} lines \u00b7 ${n(a.body.words)} \u2192 ${n(b.body.words)} words`,
+    `rules: ${a.rules.total} \u2192 ${b.rules.total}     samples: ${a.examples} \u2192 ${b.examples}     absolute paths: ${a.absolutePaths.count} \u2192 ${b.absolutePaths.count}     session facts: ${a.sessionFacts.count} \u2192 ${b.sessionFacts.count}`,
+    `references: ${n(a.references.lines)} \u2192 ${n(b.references.lines)} lines   scripts: ${a.scripts.files} \u2192 ${b.scripts.files} ${plural(b.scripts.files)}   repeated sentences: ${a.repeatedSentences} \u2192 ${b.repeatedSentences}`,
+  ].join("\n");
+}
+
 // realpathSync first: argv[1] may reach us through a symlink, and pathToFileURL
 // (never a hand-built `file://` string) encodes #, % and ? the way import.meta.url does.
 const invoked = process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href;
 if (invoked) {
   const args = process.argv.slice(2);
   const json = args.includes("--json");
-  const target = args.find((a) => !a.startsWith("--"));
-  if (!target) {
-    console.error("usage: node scripts/measure.mjs <path> [--json]");
+  const d = args.indexOf("--diff");
+  const other = d === -1 ? null : args[d + 1];
+  const target = args.find((a, i) => !a.startsWith("--") && !(d !== -1 && i === d + 1));
+  if (!target || (d !== -1 && !other)) {
+    console.error("usage: node scripts/measure.mjs <path> [--json] [--diff <other>]");
     process.exit(2);
   }
+  const trim = (p) => p.replace(/\/$/, "");
   try {
-    const m = measure(target.replace(/\/$/, ""));
-    console.log(json ? JSON.stringify(m, null, 2) : render(m));
+    const m = measure(trim(target));
+    if (other) {
+      const b = measure(trim(other));
+      console.log(json ? JSON.stringify({ before: m, after: b }, null, 2) : renderDiff(m, b));
+    } else {
+      console.log(json ? JSON.stringify(m, null, 2) : render(m));
+    }
   } catch (e) {
     console.error(e instanceof Refusal ? `refused: ${e.message}` : e.message);
     process.exit(1);

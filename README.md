@@ -111,8 +111,9 @@ Thariq Shihipar, "The new rules of context engineering for Claude 5 generation m
 Anthropic, 24 July 2026:
 https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models
 
-The inference classes are after Kelsey Hightower, PlatformCon 2026: infer once, export, run
-without inference.
+The inference classes are after Kelsey Hightower, "ZTA: Zero Token Architecture",
+PlatformCon 2026: infer once, export, run without inference.
+https://www.youtube.com/watch?v=A7WFt2JQ5sg
 
 ## License
 
