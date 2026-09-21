@@ -1,0 +1,18 @@
+name: test
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test tests/
+      - name: privacy gate
+        run: |
+          hits=$(grep -rniE "onedrive|/Users/[a-z]|C:\\\\Users" --exclude-dir=.git --exclude-dir=.github . | grep -v "tests/fixtures/hobbled/SKILL.md" | grep -v "scripts/measure.mjs" || true)
+          if [ -n "$hits" ]; then echo "$hits"; exit 1; fi
