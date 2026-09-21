@@ -14,5 +14,5 @@ jobs:
       - run: node --test "tests/*.mjs"
       - name: privacy gate
         run: |
-          hits=$(grep -rniE "onedrive|/Users/[a-z]|C:\\\\Users" --exclude-dir=.git --exclude-dir=.github . | grep -v "tests/fixtures/hobbled/SKILL.md" | grep -v "scripts/measure.mjs" || true)
+          hits=$(grep -rniE "onedrive|/Users/[a-z]|C:\\\\Users" --exclude-dir=.git --exclude-dir=.github . | grep -v "/Users/jane" | grep -v "scripts/measure.mjs" || true)
           if [ -n "$hits" ]; then echo "$hits"; exit 1; fi
