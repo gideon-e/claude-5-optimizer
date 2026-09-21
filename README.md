@@ -68,7 +68,7 @@ body: 67 → 32 lines · 583 → 206 words
 rules: 12 → 2     samples: 3 → 0     absolute paths: 1 → 0     session facts: 1 → 0
 references: 0 → 37 lines   scripts: 0 → 1 file   repeated sentences: 2 → 0
 
-Kept verbatim: 2 lines the author knew and judgment cannot reach
+Kept verbatim: 3 lines the author knew and judgment cannot reach
 Losses: none
 
 Apply it, or discard it?

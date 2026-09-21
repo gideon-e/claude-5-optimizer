@@ -1,41 +1,21 @@
 # CHANGES
 
-- del: "1. You MUST read the entire transcript before writing anything at all."
-- del: "2. You MUST list every attendee by full name at the top of the write-up."
-- del: "3. You MUST count the attendees yourself and write the number beside the list."
-- del: "5. You MUST put the decisions in the order they were reached, earliest first."
-- del: "6. You NEVER use bullet points inside the decisions section, only numbered lines."
-- del: "7. You MUST give every follow-up an owner, even when the owner is unclear."
-- del: "8. You NEVER write more than ten follow-ups, however long the meeting ran."
-- del: "9. You MUST write the notes in past tense throughout."
-- del: "10. You ALWAYS save the finished notes as a markdown file beside the transcript."
-- del: "11. You NEVER include side conversations, jokes, or small talk in the write-up."
-- moved: "2. You MUST list every attendee by full name at the top of the write-up." → references/notes-template.md
-- moved: "5. You MUST put the decisions in the order they were reached, earliest first." → references/notes-template.md
-- moved: "6. You NEVER use bullet points inside the decisions section, only numbered lines." → references/notes-template.md
-- moved: "11. You NEVER include side conversations, jokes, or small talk in the write-up." → references/notes-template.md
+- del: rules 1, 3, 7, 8, 9, 10 — read it all, count, force an owner, cap at ten, past tense, save as markdown. Judgment covers all six.
+- ins: "| owner | a name from the transcript, or `unassigned` — never a guess |" (rule 7 forced a guess)
+- moved: rules 2, 5, 6, 11 — the attendee block, decision order, numbered lines, no small talk → references/notes-template.md
 - kept: "4. You NEVER summarise a decision that was not actually reached in the meeting." (keep list, containment)
 - kept: "12. You MUST ask the user before saving over a file that is already there." (keep list, containment)
+- kept: "Jane reads these on her phone on the way home, so short lines beat long ones" (keep list, owner)
 - ins: "When nothing was decided, the decisions block says so."
-- ins: "| owner | a name from the transcript, or `unassigned` — never a guess |" (replaces rule 7's forced invention)
-- del: "Jane keeps every transcript and every finished write-up in /Users/jane/notes, and the skill\nreads and writes there."
-- ins: "Jane keeps every transcript and every finished write-up in the folder named in\n`config.md`, and the skill reads and writes there." (keep-list environment fact kept; the machine path moved to config.md)
+- del: the home-directory notes path
+- ins: "the folder named in `config.md`" (the fact stays, the machine does not)
 - del: "Please remember that the user prefers her filenames in the shape"
 - ins: "Her filenames are in the shape"
-- del: "## Procedure" and its thirteen steps (lines 34-48)
-- ins: "One markdown write-up per transcript: who was there, what was decided, what happens next — saved beside the transcript."
-- moved: "10. Write the attendee block, the decision block, and the follow-up block in that order." → references/notes-template.md
-- moved: "5. Count the people on that list and hold the number." → scripts/notes-file.mjs
-- moved: "`YYYY-MM-DD-topic.md`, in lower case, with no spaces anywhere in the name" (filename derivation) → scripts/notes-file.mjs
-- del: "11. Every set of notes ends with a list of decisions and owners." (said again at line 62)
-- del: "12. The attendee count is written at the top of the file." (said again at line 68)
-- del: "### Example 1: the short stand-up" and its paragraph
-- del: "### Example 2: the long planning session" and its paragraph
-- ins: "| count | integer; every attendee, including anyone named as present who never spoke, and anyone who joined late |" (the only fact example 2 carried)
-- del: "### Example 3: the call where nothing was decided" and its paragraph
-- ins: "`No decisions were reached.`" (the only fact example 3 carried)
-- del: "## A note on tone" heading and "Keep the write-up plain."
-- kept: "Jane reads these on her phone on the way home, so short lines beat long ones" (keep list, owner/audience)
-- ins: references/notes-template.md — the three-block output shape, the field table, and a five-line pre-save checklist (check 7: the output now has something to be checked against)
-- ins: scripts/notes-file.mjs — counts unique attendees, derives `YYYY-MM-DD-topic.md`, reports `exists` for the overwrite gate. Ran clean on a throwaway transcript.
-- ins: config.md — `notes_folder`, so a fresh session on another machine runs from the files alone
+- del: "## Procedure" and its thirteen steps (lines 34-48), for the outcome in one line
+- moved: the attendee count and the `YYYY-MM-DD-topic.md` derivation → scripts/notes-file.mjs
+- del: two sentences said a second time at lines 62 and 68
+- del: the three worked examples; the only facts they carried are now the `count` and `decisions` field rows
+- del: "## A note on tone" and "Keep the write-up plain."
+- ins: references/notes-template.md — the shape, the field table, the pre-save checklist (check 7)
+- ins: scripts/notes-file.mjs — the count, the filename, and `exists` for the overwrite gate. Ran clean.
+- ins: config.md — `notes_folder`, so another machine runs from the files alone
