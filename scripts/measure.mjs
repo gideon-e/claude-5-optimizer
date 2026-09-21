@@ -14,10 +14,7 @@ import { pathToFileURL } from "node:url";
 export class Refusal extends Error {}
 
 const RULE_WORDS = [/\bMUST\b/, /\bNEVER\b/, /\bALWAYS\b/, /\bdo not\b/i, /\bdon't\b/i];
-// The sync-folder name is joined rather than written out so this repo's own
-// privacy gate does not match its own detector.
-const SYNC_FOLDER = ["One", "Drive"].join("");
-const PATH_PATTERNS = [/\/Users\/[\w.-]+(?:\/[\w.-]+)*/g, /\/home\/[\w.-]+(?:\/[\w.-]+)*/g, /[A-Za-z]:\\[\w.\\-]+/g, new RegExp(SYNC_FOLDER, "gi")];
+const PATH_PATTERNS = [/\/Users\/[\w.-]+(?:\/[\w.-]+)*/g, /\/home\/[\w.-]+(?:\/[\w.-]+)*/g, /[A-Za-z]:\\[\w.\\-]+/g, /OneDrive/gi];
 const SESSION_PHRASES = [/remember that/i, /the user prefers/i, /last time/i];
 
 export function splitHeader(text) {
@@ -35,7 +32,8 @@ export function description(header) {
     if (/^\S/.test(line)) break;
     if (line.trim()) parts.push(line.trim());
   }
-  return parts.join(" ").trim();
+  // A quoted scalar is the description, not the quotes.
+  return parts.join(" ").trim().replace(/^(['"])([\s\S]*)\1$/, "$2");
 }
 
 export function countRules(body) {
@@ -95,7 +93,10 @@ export function repeatedSentences(texts) {
 }
 
 const words = (t) => t.split(/\s+/).filter(Boolean).length;
-const lines = (t) => (t.endsWith("\n") ? t.slice(0, -1) : t).split(/\r?\n/).length;
+const lines = (t) => {
+  const text = t.endsWith("\n") ? t.slice(0, -1) : t;
+  return text === "" ? 0 : text.split(/\r?\n/).length;
+};
 
 function walk(dir) {
   if (!existsSync(dir)) return [];

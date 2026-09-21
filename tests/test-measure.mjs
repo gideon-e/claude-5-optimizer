@@ -166,3 +166,22 @@ test('--diff with no second path is a usage error, and scripts pluralize', () =>
   const m = measure(fixture);
   assert.match(renderDiff(m, { ...m, scripts: { files: 2 } }), /scripts: 0 \u2192 2 files/);
 });
+
+test('an empty body is zero lines, not one', () => {
+  const { body } = splitHeader('---\nname: a\ndescription: b\n---\n');
+  assert.equal(body, '');
+  const dir = mkdtempSync(join(tmpdir(), 'c5o-'));
+  const folder = join(dir, 'empty');
+  mkdirSync(folder);
+  writeFileSync(join(folder, 'SKILL.md'), '---\nname: a\ndescription: b\n---\n');
+  const m = measure(folder);
+  rmSync(dir, { recursive: true, force: true });
+  assert.equal(m.body.lines, 0);
+  assert.equal(m.body.words, 0);
+});
+
+test('a quoted description loses its quotes, not its text', () => {
+  assert.equal(description('description: "two words"'), 'two words');
+  assert.equal(description("description: 'two words'"), 'two words');
+  assert.equal(description('description: two "quoted" words'), 'two "quoted" words');
+});

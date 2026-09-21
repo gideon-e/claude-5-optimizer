@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, statSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, statSync, rmSync, renameSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { apply, undo, Refusal } from '../scripts/apply.mjs';
@@ -147,4 +147,18 @@ test('undo follows the .before layout, not the applied target', (t) => {
   undo(target);
   assert.equal(readFileSync(target, 'utf8'), 'old agent\n');
   assert.equal(readFileSync(join(`${target}.optimized`, 'reader.md'), 'utf8'), 'new agent\n');
+});
+
+test('a folder swap that fails on the second move puts the original back', (t) => {
+  const { root, target } = skillFixture();
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  let calls = 0;
+  const rename = (from, to) => {
+    if (++calls === 2) throw new Error('boom');
+    renameSync(from, to);
+  };
+  assert.throws(() => apply(target, { rename }), /boom/);
+  assert.equal(readFileSync(join(target, 'SKILL.md'), 'utf8'), 'old body\n');
+  assert.ok(!existsSync(`${target}.before`), 'nothing is left at .before');
+  assert.ok(existsSync(`${target}.optimized`), 'the optimized copy is untouched');
 });
