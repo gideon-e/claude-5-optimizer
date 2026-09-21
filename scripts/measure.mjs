@@ -17,6 +17,15 @@ const RULE_WORDS = [/\bMUST\b/, /\bNEVER\b/, /\bALWAYS\b/, /\bdo not\b/i, /\bdon
 const PATH_PATTERNS = [/\/Users\/[\w.-]+(?:\/[\w.-]+)*/g, /\/home\/[\w.-]+(?:\/[\w.-]+)*/g, /[A-Za-z]:\\[\w.\\-]+/g, /OneDrive/gi];
 const SESSION_PHRASES = [/remember that/i, /the user prefers/i, /last time/i];
 
+// Work a script does better than a model. A step that opens with one of these is a step
+// the author handed to the model anyway: compute what can be computed, infer the rest.
+export const COMPUTABLE_VERBS = [
+  "count", "sort", "rename", "copy", "compare", "format", "date", "stamp", "check",
+  "look up", "validate", "parse", "list", "detect", "calculate", "compute", "number",
+  "total", "sum", "find duplicates", "dedupe",
+];
+const VERB_AT_START = new RegExp(`^(?:${COMPUTABLE_VERBS.map((v) => v.replace(/ /g, "\\s+")).join("|")})\\b`, "i");
+
 export function splitHeader(text) {
   const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(text);
   return m ? { header: m[1], body: text.slice(m[0].length) } : { header: "", body: text };
@@ -60,6 +69,26 @@ export function countExamples(body) {
     }
     if (fence !== null) continue;
     if (/^\s*(#{1,6}\s*)?(\*\*)?Examples?\b/i.test(line) || /^\s*e\.g\./i.test(line)) count++;
+  }
+  return count;
+}
+
+// A numbered or bulleted step whose first word, past the marker and any bold, is one of
+// the verbs. The word has to open the step: "Count the attendees" is a step, "The count
+// matters" is prose about one.
+export function countComputableSteps(body) {
+  let count = 0;
+  let fence = null;
+  for (const line of body.split(/\r?\n/)) {
+    const f = /^\s*(```+|~~~+)/.exec(line);
+    if (f) {
+      if (fence === null) fence = f[1][0];
+      else if (line.trim().startsWith(fence)) fence = null;
+      continue;
+    }
+    if (fence !== null) continue;
+    const step = /^\s*(?:[-*+]|\d+[.)])\s+(.*)$/.exec(line);
+    if (step && VERB_AT_START.test(step[1].replace(/^[*_]{1,2}\s*/, ""))) count++;
   }
   return count;
 }
@@ -147,6 +176,7 @@ export function measure(target) {
     absolutePaths: { count: paths.length, samples: [...new Set(paths)].slice(0, 3) },
     sessionFacts: { count: facts.length, samples: [...new Set(facts)].slice(0, 3) },
     repeatedSentences: repeatedSentences([body, ...companions]),
+    computableSteps: countComputableSteps(body),
   };
 }
 
@@ -160,7 +190,7 @@ export function render(m) {
     `rules: ${m.rules.total} (MUST ${m.rules.must}, NEVER ${m.rules.never}, ALWAYS ${m.rules.always})   examples: ${m.examples}`,
     `references: ${n(m.references.lines)} lines   scripts: ${m.scripts.files} files`,
     `absolute paths: ${m.absolutePaths.count}${list(m.absolutePaths)}   session facts: ${m.sessionFacts.count}${list(m.sessionFacts)}`,
-    `repeated sentences: ${m.repeatedSentences}`,
+    `repeated sentences: ${m.repeatedSentences}   computable steps: ${m.computableSteps}`,
   ].join("\n");
 }
 
@@ -173,7 +203,7 @@ export function renderDiff(a, b) {
     "before \u2192 after",
     `body: ${n(a.body.lines)} \u2192 ${n(b.body.lines)} lines \u00b7 ${n(a.body.words)} \u2192 ${n(b.body.words)} words`,
     `rules: ${a.rules.total} \u2192 ${b.rules.total}     samples: ${a.examples} \u2192 ${b.examples}     absolute paths: ${a.absolutePaths.count} \u2192 ${b.absolutePaths.count}     session facts: ${a.sessionFacts.count} \u2192 ${b.sessionFacts.count}`,
-    `references: ${n(a.references.lines)} \u2192 ${n(b.references.lines)} lines   scripts: ${a.scripts.files} \u2192 ${b.scripts.files} ${plural(b.scripts.files)}   repeated sentences: ${a.repeatedSentences} \u2192 ${b.repeatedSentences}`,
+    `references: ${n(a.references.lines)} \u2192 ${n(b.references.lines)} lines   scripts: ${a.scripts.files} \u2192 ${b.scripts.files} ${plural(b.scripts.files)}   repeated sentences: ${a.repeatedSentences} \u2192 ${b.repeatedSentences}   computable steps: ${a.computableSteps} \u2192 ${b.computableSteps}`,
   ].join("\n");
 }
 
