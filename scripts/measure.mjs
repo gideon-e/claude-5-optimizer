@@ -16,13 +16,13 @@ const SYNC_FOLDER = ["One", "Drive"].join("");
 const PATH_PATTERNS = [/\/Users\/[\w.-]+(?:\/[\w.-]+)*/g, /\/home\/[\w.-]+(?:\/[\w.-]+)*/g, /[A-Za-z]:\\[\w.\\-]+/g, new RegExp(SYNC_FOLDER, "gi")];
 const SESSION_PHRASES = [/remember that/i, /the user prefers/i, /last time/i];
 
-export function splitFrontmatter(text) {
+export function splitHeader(text) {
   const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(text);
-  return m ? { frontmatter: m[1], body: text.slice(m[0].length) } : { frontmatter: "", body: text };
+  return m ? { header: m[1], body: text.slice(m[0].length) } : { header: "", body: text };
 }
 
-export function description(frontmatter) {
-  const lines = frontmatter.split(/\r?\n/);
+export function description(header) {
+  const lines = header.split(/\r?\n/);
   const i = lines.findIndex((l) => /^description:/.test(l));
   if (i === -1) return "";
   const first = lines[i].slice("description:".length).trim();
@@ -110,7 +110,7 @@ export function measure(target) {
   const kind = detectKind(target);
   const main = kind === "skill" ? join(target, "SKILL.md") : target;
   const text = readFileSync(main, "utf8");
-  const { frontmatter, body } = splitFrontmatter(text);
+  const { header, body } = splitHeader(text);
   const refFiles = kind === "skill" ? walk(join(target, "references")) : [];
   const scriptFiles = kind === "skill" ? walk(join(target, "scripts")) : [];
   const companions = refFiles.filter((f) => f.endsWith(".md")).map((f) => readFileSync(f, "utf8"));
@@ -120,7 +120,7 @@ export function measure(target) {
     target,
     kind,
     body: { lines: lines(body), words: words(body) },
-    description: { chars: description(frontmatter).length },
+    description: { chars: description(header).length },
     rules: countRules(body),
     examples: countExamples(body),
     references: { lines: refFiles.reduce((n, f) => n + lines(readFileSync(f, "utf8")), 0) },

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { measure, countRules, countExamples, repeatedSentences, detectKind, description, splitFrontmatter } from '../scripts/measure.mjs';
+import { measure, countRules, countExamples, repeatedSentences, detectKind, description, splitHeader } from '../scripts/measure.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const fixture = join(root, 'tests/fixtures/hobbled');
@@ -50,9 +50,9 @@ test('a sentence of eight or more words counts when it appears twice', () => {
   assert.equal(repeatedSentences(['Too short to count here. Too short to count here.']), 0);
 });
 
-test('frontmatter splits off and the description is read from it', () => {
-  const { frontmatter, body } = splitFrontmatter('---\nname: a\ndescription: two words\n---\nbody line\n');
-  assert.equal(description(frontmatter), 'two words');
+test('header splits off and the description is read from it', () => {
+  const { header, body } = splitHeader('---\nname: a\ndescription: two words\n---\nbody line\n');
+  assert.equal(description(header), 'two words');
   assert.equal(body.trim(), 'body line');
 });
 
