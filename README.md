@@ -51,24 +51,27 @@ repeated sentences: 2
 ```
 
 Twelve rules, three worked cases, a home-directory path, a preference baked into the file, a
-thirteen-step procedure, and a step that asks the model to count attendees on every run. A
-run ends with a report in this shape, and one question:
+thirteen-step procedure, and a step that asks the model to count attendees on every run. The
+result of one real run is checked in at `tests/fixtures/hobbled-after/`, with its
+`CHANGES.md`. Measured:
 
 ```
 before → after
-body: 67 → 24 lines · 583 → 210 words
-rules: 12 → 1     samples: 3 → 0     absolute paths: 1 → 0     session facts: 1 → 0
-references: 0 → 40 lines   scripts: 0 → 1 file
+body: 67 → 32 lines · 583 → 206 words
+rules: 12 → 2     samples: 3 → 0     absolute paths: 1 → 0     session facts: 1 → 0
+references: 0 → 37 lines   scripts: 0 → 1 file   repeated sentences: 2 → 0
 
-Kept verbatim: 2 lines the author knew and judgment cannot reach
-optimized: tests/fixtures/hobbled.optimized
+Kept verbatim: 6 lines the author knew and judgment cannot reach
+Losses: none
 
 Apply it, or discard it?
 ```
 
-The counting step becomes a script, the filename convention stays because it is the project's
-own vocabulary, and the twelve rules become the one that protects a stake — the check before
-writing over a file that is already there.
+The counting, the dated filename, and the already-exists check became a script. The output
+shape became a template the write-up is checked against, which is what let the thirteen steps
+and the three cases go. The two rules that survived are the two that protect a stake: never
+report a decision the transcript does not contain, and ask before writing over a file. The
+folder fact stayed, moved from a home-directory path to a `config.md` the skill reads.
 
 ## What is inside
 
