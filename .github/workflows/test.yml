@@ -11,7 +11,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node --test tests/
+      - run: node --test "tests/*.mjs"
       - name: privacy gate
         run: |
           hits=$(grep -rniE "onedrive|/Users/[a-z]|C:\\\\Users" --exclude-dir=.git --exclude=.git --exclude-dir=.github . | grep -v "/Users/jane" | grep -v "scripts/measure.mjs" || true)

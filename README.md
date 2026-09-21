@@ -91,7 +91,7 @@ folder fact stayed, moved from a home-directory path to a `config.md` the skill 
 | `scripts/apply.mjs` | the reversible swap |
 | `references/recipe.md` | the depth both agents read |
 
-Node, no dependencies. `npm test` runs `node --test tests/`, which is the whole test command.
+Node, no dependencies. `npm test` runs `node --test "tests/*.mjs"`, which is the whole test command.
 
 ## Security
 
