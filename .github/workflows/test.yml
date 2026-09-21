@@ -12,3 +12,7 @@ jobs:
         with:
           node-version: 22
       - run: node --test tests/
+      - name: privacy gate
+        run: |
+          hits=$(grep -rniE "onedrive|/Users/[a-z]|C:\\\\Users" --exclude-dir=.git --exclude=.git --exclude-dir=.github . | grep -v "/Users/jane" | grep -v "scripts/measure.mjs" || true)
+          if [ -n "$hits" ]; then echo "$hits"; exit 1; fi

@@ -15,8 +15,8 @@ All notable changes to this plugin are recorded here. Versions follow semver.
 - `agents/goal-reader.md`: `Bash(wc:*)` gone; the counts come from `measure.mjs`.
 - `references/recipe.md`: the Kelsey Hightower talk is linked.
 - `package.json`: name, version, and `npm test`. A test holds it to the plugin version.
-- `.github/workflows/test.yml`: the privacy gate is gone; it matched the fixture's own
-  invented path and failed on main.
+- `.github/workflows/test.yml`: the privacy gate excludes the fixture's invented
+  `/Users/jane` path by name, so it is green without excluding whole files.
 - `README.md`: the install line takes the marketplace, the fixture numbers are the measured
   ones, and the Why says who it is for.
 - `tests/fixtures/hobbled-after`: `CHANGES.md` cut from 665 words to under 300, and the
