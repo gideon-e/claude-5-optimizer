@@ -20,11 +20,12 @@ const refuse = (msg) => {
 const isDir = (p) => existsSync(p) && statSync(p).isDirectory();
 const isFile = (p) => existsSync(p) && statSync(p).isFile();
 
-function moveOthers(from, to, except) {
-  for (const name of readdirSync(from)) if (name !== except) renameSync(join(from, name), join(to, name));
+function moveOthers(from, to, except, rename = renameSync) {
+  for (const name of readdirSync(from)) if (name !== except) rename(join(from, name), join(to, name));
 }
 
-export function apply(target) {
+// `rename` is a seam for the tests: the half-done swap is the one failure worth proving.
+export function apply(target, { rename = renameSync } = {}) {
   const path = target.replace(/\/$/, "");
   const optimized = `${path}.optimized`;
   const before = `${path}.before`;
@@ -34,16 +35,22 @@ export function apply(target) {
   if (existsSync(before)) refuse(`${before} is already there; review or remove it first`);
 
   if (isDir(path)) {
-    renameSync(path, before);
-    renameSync(optimized, path);
+    rename(path, before);
+    try {
+      rename(optimized, path);
+    } catch (e) {
+      // The original is back where the user left it, whatever went wrong second.
+      rename(before, path);
+      throw e;
+    }
     return { applied: path, kept: before };
   }
   const name = basename(path);
   if (!existsSync(join(optimized, name))) refuse(`${optimized} holds no ${name}`);
   mkdirSync(before, { recursive: true });
-  renameSync(path, join(before, name));
-  renameSync(join(optimized, name), path);
-  moveOthers(optimized, before, name);
+  rename(path, join(before, name));
+  rename(join(optimized, name), path);
+  moveOthers(optimized, before, name, rename);
   rmdirSync(optimized);
   return { applied: path, kept: before };
 }

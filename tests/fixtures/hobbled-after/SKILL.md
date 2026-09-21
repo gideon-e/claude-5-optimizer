@@ -32,7 +32,7 @@ Once you have the attendee list and a topic, the count, the filename, and the
 already-exists check come from the script, not from you:
 
 ```
-node scripts/notes-file.mjs --transcript <path> --topic "<topic>" --attendees "Name; Name; Name"
+node ${CLAUDE_PLUGIN_ROOT}/scripts/notes-file.mjs --transcript <path> --topic "<topic>" --attendees "Name; Name; Name"
 ```
 
 It returns JSON: `{ count, filename, path, exists }`. If `exists` is true, ask before writing.

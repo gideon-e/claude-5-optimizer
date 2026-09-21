@@ -6,8 +6,7 @@ description: >
   skill", "refactor this agent for the new models", "is this CLAUDE.md hobbling Claude",
   "claude-5-optimizer". Do NOT trigger for writing a new skill from scratch (skill-creator)
   or reviewing code (code-review).
-argument-hint: "[path to a skill folder, an agent .md, or a CLAUDE.md] | apply [path]"
-user-invocable: true
+argument-hint: "[path to a skill folder, an agent .md, or a CLAUDE.md] | apply [path] | undo [path]"
 ---
 
 # /claude-5-optimizer:optimize
@@ -22,7 +21,7 @@ swap in — and one question: apply it, or discard it.
 
 | Tool | What it gives you |
 |---|---|
-| `node ${CLAUDE_PLUGIN_ROOT}/scripts/measure.mjs <path>` | the counts: body, description, rules, samples, references, scripts, absolute paths, session facts, repeats. `--json` for an agent |
+| `node ${CLAUDE_PLUGIN_ROOT}/scripts/measure.mjs <path>` | the counts: body, description, rules, samples, references, scripts, absolute paths, session facts, repeats. `--diff <other>` prints the before → after block. `--json` for an agent: agents parse, people read |
 | Agent `claude-5-optimizer:goal-reader` | what the file was for, the lines only its author knew, the eight hobble checks with a quote per fail, what to cut first |
 | Agent `claude-5-optimizer:rewriter` | `<path>.optimized/` and its `CHANGES.md`, plus the rationale and the new counts |
 | `node ${CLAUDE_PLUGIN_ROOT}/scripts/apply.mjs <path>` | the swap: original to `<path>.before`, optimized copy into place. `--undo` reverses it |
@@ -33,8 +32,9 @@ reader's prompt the target path and the measure output; paste into the rewriter'
 target path, the measure output, and the reader's report whole. A summary of the report
 costs the rewrite the keep list.
 
-`optimize apply <path>` is the second entry point: run `apply.mjs` and report what moved
-where. The original is kept, and `--undo` puts it back.
+`optimize apply <path>` and `optimize undo <path>` are the other two entry points. Run
+`node ${CLAUDE_PLUGIN_ROOT}/scripts/apply.mjs <path>`, or the same line with `--undo`, and
+report what moved where. The original is kept either way.
 
 ## Stakes
 
@@ -48,14 +48,15 @@ keep list is how that is caught; carry it into the rewriter's prompt verbatim.
 
 ## What the user sees
 
+The before-and-after block is measured, not assembled:
+
 ```
-target: <path>   kind: skill
+node ${CLAUDE_PLUGIN_ROOT}/scripts/measure.mjs <path> --diff <path>.optimized
+```
 
-before → after
-body: 214 → 71 lines · 1,571 → 480 words
-rules: 12 → 1     samples: 3 → 0     absolute paths: 1 → 0     session facts: 1 → 0
-references: 0 → 96 lines   scripts: 0 → 1 file
+Under what it prints:
 
+```
 Kept verbatim: <n> lines the author knew and judgment cannot reach
 Cut: <one line naming the largest cuts>
 Losses: none | <what the cut-loss check restored>

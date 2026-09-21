@@ -7,6 +7,7 @@ import { dirname, join } from 'node:path';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const plugin = JSON.parse(readFileSync(join(root, '.claude-plugin/plugin.json'), 'utf8'));
 const market = JSON.parse(readFileSync(join(root, '.claude-plugin/marketplace.json'), 'utf8'));
+const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 
 test('plugin manifest names the plugin and a semver version', () => {
   assert.equal(plugin.name, 'claude-5-optimizer');
@@ -25,4 +26,8 @@ test('descriptions agree and stay under 400 characters', () => {
   const entry = market.plugins.find((p) => p.name === plugin.name);
   assert.equal(entry.description, plugin.description);
   assert.ok(plugin.description.length < 400, `description is ${plugin.description.length} chars`);
+});
+
+test('package.json carries the plugin version', () => {
+  assert.equal(pkg.version, plugin.version);
 });

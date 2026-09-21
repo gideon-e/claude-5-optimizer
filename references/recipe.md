@@ -78,7 +78,8 @@ A reader that empties this list to make the rewrite shorter has failed.
 
 ## 5. The four inference classes
 
-After Kelsey Hightower, PlatformCon 2026: infer once, export, run without inference.
+After Kelsey Hightower, "ZTA: Zero Token Architecture", PlatformCon 2026
+(https://www.youtube.com/watch?v=A7WFt2JQ5sg): infer once, export, run without inference.
 Classify every place the design calls the model.
 
 | Class | Signal | What ships |

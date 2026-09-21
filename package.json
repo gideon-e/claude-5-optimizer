@@ -1,0 +1,9 @@
+{
+  "name": "claude-5-optimizer",
+  "version": "0.1.2",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": { "test": "node --test tests/*.mjs" },
+  "license": "MIT"
+}

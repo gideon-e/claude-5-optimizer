@@ -5,7 +5,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, copyFileSync, rmSync, realpathSy
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { measure, countRules, countExamples, repeatedSentences, detectKind, description, splitHeader, Refusal } from '../scripts/measure.mjs';
+import { measure, renderDiff, countRules, countExamples, repeatedSentences, detectKind, description, splitHeader, Refusal } from '../scripts/measure.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const fixture = join(root, 'tests/fixtures/hobbled');
@@ -134,4 +134,54 @@ test('the command line runs from a folder whose name holds a # character', (t) =
   copyFileSync(join(root, 'scripts/measure.mjs'), script);
   const out = execFileSync('node', [script, fixture], { encoding: 'utf8' });
   assert.match(out, /rules: 12 \(MUST 7, NEVER 4, ALWAYS 1\)/);
+});
+
+test('--diff prints the before to after block the skill reports', () => {
+  const script = join(root, 'scripts/measure.mjs');
+  const after = join(root, 'tests/fixtures/hobbled-after');
+  const out = execFileSync('node', [script, fixture, '--diff', after], { encoding: 'utf8' });
+  const lines = out.trimEnd().split('\n');
+  assert.equal(lines[0], `target: ${fixture}   kind: skill`);
+  assert.equal(lines[1], '');
+  assert.equal(lines[2], 'before \u2192 after');
+  assert.equal(lines[3], 'body: 67 \u2192 32 lines \u00b7 583 \u2192 206 words');
+  assert.equal(lines[4], 'rules: 12 \u2192 2     samples: 3 \u2192 0     absolute paths: 1 \u2192 0     session facts: 1 \u2192 0');
+  assert.equal(lines[5], 'references: 0 \u2192 37 lines   scripts: 0 \u2192 1 file   repeated sentences: 2 \u2192 0');
+  assert.equal(lines.length, 6);
+});
+
+test('--diff --json gives both measurements, not a rendered block', () => {
+  const script = join(root, 'scripts/measure.mjs');
+  const after = join(root, 'tests/fixtures/hobbled-after');
+  const j = JSON.parse(execFileSync('node', [script, fixture, '--diff', after, '--json'], { encoding: 'utf8' }));
+  assert.equal(j.before.rules.total, 12);
+  assert.equal(j.after.rules.total, 2);
+  assert.equal(j.after.scripts.files, 1);
+});
+
+test('--diff with no second path is a usage error, and scripts pluralize', () => {
+  const r = spawnSync('node', [join(root, 'scripts/measure.mjs'), fixture, '--diff'], { encoding: 'utf8' });
+  assert.equal(r.status, 2);
+  assert.match(r.stderr, /--diff <other>/);
+  const m = measure(fixture);
+  assert.match(renderDiff(m, { ...m, scripts: { files: 2 } }), /scripts: 0 \u2192 2 files/);
+});
+
+test('an empty body is zero lines, not one', () => {
+  const { body } = splitHeader('---\nname: a\ndescription: b\n---\n');
+  assert.equal(body, '');
+  const dir = mkdtempSync(join(tmpdir(), 'c5o-'));
+  const folder = join(dir, 'empty');
+  mkdirSync(folder);
+  writeFileSync(join(folder, 'SKILL.md'), '---\nname: a\ndescription: b\n---\n');
+  const m = measure(folder);
+  rmSync(dir, { recursive: true, force: true });
+  assert.equal(m.body.lines, 0);
+  assert.equal(m.body.words, 0);
+});
+
+test('a quoted description loses its quotes, not its text', () => {
+  assert.equal(description('description: "two words"'), 'two words');
+  assert.equal(description("description: 'two words'"), 'two words');
+  assert.equal(description('description: two "quoted" words'), 'two "quoted" words');
 });

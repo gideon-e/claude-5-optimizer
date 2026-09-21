@@ -2,6 +2,26 @@
 
 All notable changes to this plugin are recorded here. Versions follow semver.
 
+## 0.1.2 — 2026-09-21
+
+- `skills/optimize`: an `undo` verb beside `apply`, and the before → after block comes from
+  the script instead of being assembled by hand.
+- `scripts/measure.mjs`: `--diff <other>` prints the before → after block, text or `--json`.
+- `scripts/measure.mjs`: an empty body counts 0 lines, and a quoted YAML description loses
+  its quotes.
+- `scripts/apply.mjs`: a folder swap that fails on the second move puts the original back.
+- `agents/rewriter.md`: the five shifts it restated from `references/recipe.md` are gone,
+  along with `Edit`, `Bash(wc:*)`, and `Bash(mkdir:*)`.
+- `agents/goal-reader.md`: `Bash(wc:*)` gone; the counts come from `measure.mjs`.
+- `references/recipe.md`: the Kelsey Hightower talk is linked.
+- `package.json`: name, version, and `npm test`. A test holds it to the plugin version.
+- `.github/workflows/test.yml`: the privacy gate excludes the fixture's invented
+  `/Users/jane` path by name, so it is green without excluding whole files.
+- `README.md`: the install line takes the marketplace, the fixture numbers are the measured
+  ones, and the Why says who it is for.
+- `tests/fixtures/hobbled-after`: `CHANGES.md` cut from 665 words to under 300, and the
+  script call carries `${CLAUDE_PLUGIN_ROOT}`.
+
 ## 0.1.1 — 2026-09-21
 
 - `measure.mjs`: a folder counts as a skill only when it holds a `SKILL.md`.
