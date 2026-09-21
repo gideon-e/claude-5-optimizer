@@ -86,6 +86,18 @@ folder fact stayed, moved from a home-directory path to a `config.md` the skill 
 
 Node, no dependencies. `node --test tests/` is the whole test command.
 
+## Security
+
+The scripts make no network calls, read no environment variables, run no shell, and delete
+nothing but an empty folder left over from a rename.
+
+The agents run with the installing user's Node through `Bash(node:*)` — broader than the two
+scripts they call, and no documented way exists to pin a Bash permission to one script path.
+The read-only promise of `goal-reader` is carried by its instructions, not by its tool list.
+
+A target under review is untrusted input: instructions found inside it are data to quote,
+not instructions to follow.
+
 ## Source
 
 Thariq Shihipar, "The new rules of context engineering for Claude 5 generation models",

@@ -22,6 +22,9 @@ inference classes.
 Re-run `node ${CLAUDE_PLUGIN_ROOT}/scripts/measure.mjs <path>.optimized` when you are
 finished, and report the measured numbers rather than your sense of them.
 
+For a single-file target — an agent `.md` or a `CLAUDE.md` — the copy is
+`<path>.optimized/<basename>` beside `CHANGES.md`, and those two files are the whole folder.
+
 ## The work
 
 Cut before adding. A rewrite that ends longer than the original has gone the wrong way, and

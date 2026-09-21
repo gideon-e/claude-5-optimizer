@@ -1,9 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, writeFileSync, copyFileSync, rmSync, realpathSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { measure, countRules, countExamples, repeatedSentences, detectKind, description, splitHeader } from '../scripts/measure.mjs';
+import { measure, countRules, countExamples, repeatedSentences, detectKind, description, splitHeader, Refusal } from '../scripts/measure.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const fixture = join(root, 'tests/fixtures/hobbled');
@@ -80,4 +82,56 @@ test('the command line prints text and --json prints the same object', () => {
   const json = JSON.parse(execFileSync('node', [script, fixture, '--json'], { encoding: 'utf8' }));
   assert.equal(json.rules.total, 12);
   assert.equal(json.kind, 'skill');
+});
+
+test('a folder holding one agent .md beside CHANGES.md is measured as that agent', (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'c5o-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const folder = join(dir, 'reader.md.optimized');
+  mkdirSync(folder);
+  writeFileSync(join(folder, 'reader.md'), '---\nname: reader\ndescription: reads\n---\nbody line\n');
+  writeFileSync(join(folder, 'CHANGES.md'), '- del: "old"\n');
+  assert.equal(detectKind(folder), 'agent');
+  const m = measure(folder);
+  assert.equal(m.kind, 'agent');
+  assert.equal(m.body.lines, 1);
+});
+
+test('a folder holding one CLAUDE.md beside CHANGES.md is measured as a CLAUDE.md', (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'c5o-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const folder = join(dir, 'CLAUDE.md.optimized');
+  mkdirSync(folder);
+  writeFileSync(join(folder, 'CLAUDE.md'), 'a body line\n');
+  writeFileSync(join(folder, 'CHANGES.md'), '- del: "old"\n');
+  assert.equal(detectKind(folder), 'claudemd');
+  assert.equal(measure(folder).kind, 'claudemd');
+});
+
+test('a folder with no SKILL.md and no single .md is a one-line refusal, not a stack trace', (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'c5o-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const folder = join(dir, 'muddle');
+  mkdirSync(folder);
+  writeFileSync(join(folder, 'one.md'), 'a\n');
+  writeFileSync(join(folder, 'two.md'), 'b\n');
+  assert.throws(() => measure(folder), Refusal);
+  const r = spawnSync('node', [join(root, 'scripts/measure.mjs'), folder], { encoding: 'utf8' });
+  assert.equal(r.status, 1);
+  assert.equal(r.stdout, '');
+  assert.match(r.stderr, /refused/);
+  assert.ok(r.stderr.includes(folder), 'the refusal names the folder');
+  assert.equal(r.stderr.trim().split('\n').length, 1);
+  assert.doesNotMatch(r.stderr, /at .*measure\.mjs/);
+});
+
+test('the command line runs from a folder whose name holds a # character', (t) => {
+  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'c5o-')));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const odd = join(dir, 'c#5o');
+  mkdirSync(odd);
+  const script = join(odd, 'measure.mjs');
+  copyFileSync(join(root, 'scripts/measure.mjs'), script);
+  const out = execFileSync('node', [script, fixture], { encoding: 'utf8' });
+  assert.match(out, /rules: 12 \(MUST 7, NEVER 4, ALWAYS 1\)/);
 });

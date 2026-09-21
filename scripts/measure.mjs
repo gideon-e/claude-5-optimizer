@@ -6,8 +6,11 @@
 //
 // Counting only. It reads; it changes nothing.
 
-import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, existsSync, realpathSync } from "node:fs";
 import { join, basename } from "node:path";
+import { pathToFileURL } from "node:url";
+
+export class Refusal extends Error {}
 
 const RULE_WORDS = [/\bMUST\b/, /\bNEVER\b/, /\bALWAYS\b/, /\bdo not\b/i, /\bdon't\b/i];
 // The sync-folder name is joined rather than written out so this repo's own
@@ -101,14 +104,28 @@ function walk(dir) {
   });
 }
 
+const kindOfFile = (name) => (/^CLAUDE\.md$/i.test(basename(name)) ? "claudemd" : "agent");
+
+// A folder is a skill when it holds a SKILL.md. A folder holding exactly one other
+// `.md` — an `<agent>.md.optimized` beside its CHANGES.md — is that file.
+export function resolve(target) {
+  if (!(existsSync(target) && statSync(target).isDirectory())) {
+    return { kind: kindOfFile(target), main: target };
+  }
+  if (existsSync(join(target, "SKILL.md"))) return { kind: "skill", main: join(target, "SKILL.md") };
+  const mds = readdirSync(target).filter((n) => n.endsWith(".md") && n !== "CHANGES.md");
+  if (mds.length !== 1) {
+    throw new Refusal(`${target} holds no SKILL.md and no single .md to measure`);
+  }
+  return { kind: kindOfFile(mds[0]), main: join(target, mds[0]) };
+}
+
 export function detectKind(target) {
-  if (existsSync(target) && statSync(target).isDirectory()) return "skill";
-  return /^CLAUDE\.md$/i.test(basename(target)) ? "claudemd" : "agent";
+  return resolve(target).kind;
 }
 
 export function measure(target) {
-  const kind = detectKind(target);
-  const main = kind === "skill" ? join(target, "SKILL.md") : target;
+  const { kind, main } = resolve(target);
   const text = readFileSync(main, "utf8");
   const { header, body } = splitHeader(text);
   const refFiles = kind === "skill" ? walk(join(target, "references")) : [];
@@ -145,7 +162,9 @@ export function render(m) {
   ].join("\n");
 }
 
-const invoked = process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href;
+// realpathSync first: argv[1] may reach us through a symlink, and pathToFileURL
+// (never a hand-built `file://` string) encodes #, % and ? the way import.meta.url does.
+const invoked = process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href;
 if (invoked) {
   const args = process.argv.slice(2);
   const json = args.includes("--json");
@@ -154,6 +173,11 @@ if (invoked) {
     console.error("usage: node scripts/measure.mjs <path> [--json]");
     process.exit(2);
   }
-  const m = measure(target.replace(/\/$/, ""));
-  console.log(json ? JSON.stringify(m, null, 2) : render(m));
+  try {
+    const m = measure(target.replace(/\/$/, ""));
+    console.log(json ? JSON.stringify(m, null, 2) : render(m));
+  } catch (e) {
+    console.error(e instanceof Refusal ? `refused: ${e.message}` : e.message);
+    process.exit(1);
+  }
 }
