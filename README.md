@@ -13,27 +13,34 @@ skills in the wild were written before that: numbered workflows, worked transcri
 MUST/NEVER lists, everything loaded upfront, absolute paths, session facts baked into the
 file. Each of those narrows what the model will consider before it has seen the request.
 
-What the optimizer will not take out is the knowledge only the author had — an environment
-fact, what a named tool refuses, a containment line, a project's own vocabulary, who owns
-the file, and the description's trigger phrases. Those are the lines nobody recovers by
-reasoning, and they read exactly like the rules a cut goes after.
+It is for anyone maintaining skills, agents, or `CLAUDE.md` files written before Claude 5.
+A run dispatches two subagents: one reads the file and returns its goal, the other writes
+the optimized copy.
+
+What the optimizer leaves in is the knowledge only the author had: an environment fact,
+what a named tool refuses, a containment line, the project's vocabulary, the file's owner,
+the description's trigger phrases. Those are the lines nobody recovers by reasoning, and
+they read exactly like the rules a cut goes after.
 
 ## Install
 
 ```
 claude plugin marketplace add gideon-e/claude-5-optimizer
-claude plugin install claude-5-optimizer --scope user
+claude plugin install claude-5-optimizer@claude-5-optimizer --scope user
 ```
+
+Requires Node 20 or later.
 
 ## Use
 
 ```
 /claude-5-optimizer:optimize path/to/skills/my-skill
 /claude-5-optimizer:optimize apply path/to/skills/my-skill
+/claude-5-optimizer:optimize undo path/to/skills/my-skill
 ```
 
 The first reads, rewrites, and shows the before and after. The second swaps the copy in,
-keeping the original at `<path>.before`; `node scripts/apply.mjs <path> --undo` puts it back.
+keeping the original at `<path>.before`. The third puts it back.
 
 ## A run on the bundled fixture
 
@@ -53,7 +60,7 @@ repeated sentences: 2
 Twelve rules, three worked cases, a home-directory path, a preference baked into the file, a
 thirteen-step procedure, and a step that asks the model to count attendees on every run. The
 result of one real run is checked in at `tests/fixtures/hobbled-after/`, with its
-`CHANGES.md`. Measured:
+`CHANGES.md`. The skill's own report on that run:
 
 ```
 before → after
@@ -61,15 +68,15 @@ body: 67 → 32 lines · 583 → 206 words
 rules: 12 → 2     samples: 3 → 0     absolute paths: 1 → 0     session facts: 1 → 0
 references: 0 → 37 lines   scripts: 0 → 1 file   repeated sentences: 2 → 0
 
-Kept verbatim: 6 lines the author knew and judgment cannot reach
+Kept verbatim: 2 lines the author knew and judgment cannot reach
 Losses: none
 
 Apply it, or discard it?
 ```
 
-The counting, the dated filename, and the already-exists check became a script. The output
-shape became a template the write-up is checked against, which is what let the thirteen steps
-and the three cases go. The two rules that survived are the two that protect a stake: never
+The counting, the dated filename, and the already-exists check became a script. The output shape
+became a template the write-up is checked against, which let the thirteen steps and the
+three cases go. The two rules that survived are the two that protect a stake: never
 report a decision the transcript does not contain, and ask before writing over a file. The
 folder fact stayed, moved from a home-directory path to a `config.md` the skill reads.
 
@@ -84,7 +91,7 @@ folder fact stayed, moved from a home-directory path to a `config.md` the skill 
 | `scripts/apply.mjs` | the reversible swap |
 | `references/recipe.md` | the depth both agents read |
 
-Node, no dependencies. `node --test tests/` is the whole test command.
+Node, no dependencies. `npm test` runs `node --test tests/`, which is the whole test command.
 
 ## Security
 

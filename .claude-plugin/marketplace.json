@@ -1,6 +1,7 @@
 {
   "name": "claude-5-optimizer",
   "owner": { "name": "Gideon Esakoff" },
+  "description": "Reads a pre-Claude-5 skill, agent, or CLAUDE.md, works out what its author wanted it to achieve, and rewrites it so Claude is no longer hobbled by it.",
   "plugins": [
     {
       "name": "claude-5-optimizer",

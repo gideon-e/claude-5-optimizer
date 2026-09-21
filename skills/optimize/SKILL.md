@@ -6,7 +6,7 @@ description: >
   skill", "refactor this agent for the new models", "is this CLAUDE.md hobbling Claude",
   "claude-5-optimizer". Do NOT trigger for writing a new skill from scratch (skill-creator)
   or reviewing code (code-review).
-argument-hint: "[path to a skill folder, an agent .md, or a CLAUDE.md] | apply [path]"
+argument-hint: "[path to a skill folder, an agent .md, or a CLAUDE.md] | apply [path] | undo [path]"
 user-invocable: true
 ---
 
@@ -33,8 +33,9 @@ reader's prompt the target path and the measure output; paste into the rewriter'
 target path, the measure output, and the reader's report whole. A summary of the report
 costs the rewrite the keep list.
 
-`optimize apply <path>` is the second entry point: run `apply.mjs` and report what moved
-where. The original is kept, and `--undo` puts it back.
+`optimize apply <path>` and `optimize undo <path>` are the other two entry points. Run
+`node ${CLAUDE_PLUGIN_ROOT}/scripts/apply.mjs <path>`, or the same line with `--undo`, and
+report what moved where. The original is kept either way.
 
 ## Stakes
 
