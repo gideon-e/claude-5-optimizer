@@ -10,8 +10,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-      - run: node --test tests/
+          node-version: 24
+      - run: node --test "tests/*.mjs"
       - name: privacy gate
         run: |
           hits=$(grep -rniE "onedrive|/Users/[a-z]|C:\\\\Users" --exclude-dir=.git --exclude-dir=.github . | grep -v "tests/fixtures/hobbled/SKILL.md" | grep -v "scripts/measure.mjs" || true)
