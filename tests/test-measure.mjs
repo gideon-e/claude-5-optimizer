@@ -56,6 +56,23 @@ test('frontmatter splits off and the description is read from it', () => {
   assert.equal(body.trim(), 'body line');
 });
 
+test('a folded description is read whole, and stops at the next key', () => {
+  const fm = 'name: a\ndescription: >\n  one line\n  and another\nargument-hint: "[path]"';
+  assert.equal(description(fm), 'one line and another');
+});
+
+test("the plugin's own three bodies stay inside their budgets", () => {
+  for (const p of ['skills/optimize', 'agents/goal-reader.md', 'agents/rewriter.md']) {
+    const m = measure(join(root, p));
+    assert.ok(m.rules.total <= 2, `${p} carries ${m.rules.total} rules`);
+    assert.equal(m.examples, 0, `${p} carries ${m.examples} worked cases`);
+    assert.equal(m.absolutePaths.count, 0, `${p} carries an absolute path`);
+    assert.equal(m.sessionFacts.count, 0, `${p} carries a session fact`);
+    assert.ok(m.description.chars < 400, `${p} description is ${m.description.chars} chars`);
+    assert.ok(m.body.lines < 100, `${p} body is ${m.body.lines} lines`);
+  }
+});
+
 test('the command line prints text and --json prints the same object', () => {
   const script = join(root, 'scripts/measure.mjs');
   const text = execFileSync('node', [script, fixture], { encoding: 'utf8' });

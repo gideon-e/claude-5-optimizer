@@ -22,9 +22,16 @@ export function splitFrontmatter(text) {
 }
 
 export function description(frontmatter) {
-  const m = /^description:\s*(>[-+]?|\|[-+]?)?[ \t]*\r?\n?([\s\S]*?)(?=\r?\n[A-Za-z_-]+:|$)/m.exec(frontmatter);
-  if (!m) return "";
-  return m[2].split(/\r?\n/).map((l) => l.trim()).filter(Boolean).join(" ").trim();
+  const lines = frontmatter.split(/\r?\n/);
+  const i = lines.findIndex((l) => /^description:/.test(l));
+  if (i === -1) return "";
+  const first = lines[i].slice("description:".length).trim();
+  const parts = /^[>|][-+]?$/.test(first) ? [] : [first];
+  for (const line of lines.slice(i + 1)) {
+    if (/^\S/.test(line)) break;
+    if (line.trim()) parts.push(line.trim());
+  }
+  return parts.join(" ").trim();
 }
 
 export function countRules(body) {
