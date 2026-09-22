@@ -39,8 +39,9 @@ export function apply(target, { rename = renameSync } = {}) {
     try {
       rename(optimized, path);
     } catch (e) {
-      // The original is back where the user left it, whatever went wrong second.
-      rename(before, path);
+      // The original is back where the user left it, whatever went wrong second. A rollback
+      // failure attaches to `.cause` so the root-cause error is not lost.
+      try { rename(before, path); } catch (rollback) { e.cause = rollback; }
       throw e;
     }
     return { applied: path, kept: before };
@@ -49,7 +50,17 @@ export function apply(target, { rename = renameSync } = {}) {
   if (!existsSync(join(optimized, name))) refuse(`${optimized} holds no ${name}`);
   mkdirSync(before, { recursive: true });
   rename(path, join(before, name));
-  rename(join(optimized, name), path);
+  try {
+    rename(join(optimized, name), path);
+  } catch (e) {
+    try {
+      rename(join(before, name), path);
+      rmdirSync(before);
+    } catch (rollback) {
+      e.cause = rollback;
+    }
+    throw e;
+  }
   moveOthers(optimized, before, name, rename);
   rmdirSync(optimized);
   return { applied: path, kept: before };

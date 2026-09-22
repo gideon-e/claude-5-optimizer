@@ -18,7 +18,8 @@ test('the hobbled fixture measures as the spec describes it', () => {
   assert.equal(m.examples, 3);
   assert.equal(m.absolutePaths.count, 1);
   assert.deepEqual(m.absolutePaths.samples, ['/Users/jane/notes']);
-  assert.equal(m.sessionFacts.count, 1);
+  assert.equal(m.sessionFacts.count, 2);
+  assert.deepEqual(m.sessionFacts.samples, ['remember that', 'the user prefers']);
   assert.equal(m.repeatedSentences, 2);
   // Four steps open with a computable verb, past "You" and the rule word: rules 3 (count)
   // and 10 (save), and procedure steps 5 (count) and 13 (save). Procedure step 12 opens
@@ -170,7 +171,7 @@ test('--diff prints the before to after block the skill reports', () => {
   assert.equal(lines[1], '');
   assert.equal(lines[2], 'before \u2192 after');
   assert.equal(lines[3], 'body: 67 \u2192 32 lines \u00b7 583 \u2192 206 words');
-  assert.equal(lines[4], 'rules: 12 \u2192 2     samples: 3 \u2192 0     absolute paths: 1 \u2192 0     session facts: 1 \u2192 0');
+  assert.equal(lines[4], 'rules: 12 \u2192 2     samples: 3 \u2192 0     absolute paths: 1 \u2192 0     session facts: 2 \u2192 0');
   assert.equal(lines[5], 'references: 0 \u2192 37 lines   scripts: 0 \u2192 1 file   repeated sentences: 2 \u2192 0   computable steps: 4 \u2192 0');
   assert.equal(lines.length, 6);
 });

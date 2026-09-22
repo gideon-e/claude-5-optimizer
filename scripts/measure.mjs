@@ -15,7 +15,7 @@ export class Refusal extends Error {}
 
 const RULE_WORDS = [/\bMUST\b/, /\bNEVER\b/, /\bALWAYS\b/, /\bdo not\b/i, /\bdon't\b/i];
 const PATH_PATTERNS = [/\/Users\/[\w.-]+(?:\/[\w.-]+)*/g, /\/home\/[\w.-]+(?:\/[\w.-]+)*/g, /[A-Za-z]:\\[\w.\\-]+/g, /OneDrive/gi];
-const SESSION_PHRASES = [/remember that/i, /the user prefers/i, /last time/i];
+const SESSION_PHRASES = [/remember that/gi, /the user prefers/gi, /last time/gi];
 
 // Work a script does better than a model. A step that opens with one of these is a step
 // the author handed to the model anyway: compute what can be computed, infer the rest.
@@ -48,30 +48,60 @@ export function description(header) {
   return parts.join(" ").trim().replace(/^(['"])([\s\S]*)\1$/, "$2");
 }
 
+// One fence tracker for every counter. Yields `body` for lines outside fences and `open`
+// (with the fence's tag) for a fence that properly closes. An unclosed trailing fence is
+// prose, not code: its held lines are flushed as body at end-of-input.
+function* walkLines(body) {
+  let fence = null;
+  let openTag = "";
+  const held = [];
+  for (const line of body.split(/\r?\n/)) {
+    const f = /^\s*(```+|~~~+)\s*(\w+)?/.exec(line);
+    if (f) {
+      if (fence === null) {
+        fence = f[1][0];
+        openTag = f[2] ?? "";
+        held.length = 0;
+      } else if (line.trim().startsWith(fence)) {
+        yield { kind: "open", tag: openTag };
+        fence = null;
+        openTag = "";
+        held.length = 0;
+      } else {
+        held.push(line);
+      }
+      continue;
+    }
+    if (fence !== null) {
+      held.push(line);
+      continue;
+    }
+    yield { kind: "body", line };
+  }
+  if (fence !== null) for (const line of held) yield { kind: "body", line };
+}
+
+function stripFences(body) {
+  const out = [];
+  for (const t of walkLines(body)) if (t.kind === "body") out.push(t.line);
+  return out;
+}
+
 export function countRules(body) {
-  const lines = body.split(/\r?\n/);
+  const lines = stripFences(body);
   const hit = (re) => lines.filter((l) => re.test(l)).length;
   const total = lines.filter((l) => RULE_WORDS.some((re) => re.test(l))).length;
   return { total, must: hit(/\bMUST\b/), never: hit(/\bNEVER\b/), always: hit(/\bALWAYS\b/) };
 }
 
 export function countExamples(body) {
-  const lines = body.split(/\r?\n/);
   let count = 0;
-  let fence = null;
-  for (const line of lines) {
-    const f = /^\s*(```+|~~~+)\s*(\w+)?/.exec(line);
-    if (f) {
-      if (fence === null) {
-        fence = f[1][0];
-        if (/^(transcript|example|conversation)$/i.test(f[2] ?? "")) count++;
-      } else if (line.trim().startsWith(fence)) {
-        fence = null;
-      }
-      continue;
+  for (const t of walkLines(body)) {
+    if (t.kind === "open") {
+      if (/^(transcript|example|conversation)$/i.test(t.tag)) count++;
+    } else if (/^\s*(#{1,6}\s*)?(\*\*)?Examples?\b/i.test(t.line) || /^\s*e\.g\./i.test(t.line)) {
+      count++;
     }
-    if (fence !== null) continue;
-    if (/^\s*(#{1,6}\s*)?(\*\*)?Examples?\b/i.test(line) || /^\s*e\.g\./i.test(line)) count++;
   }
   return count;
 }
@@ -81,16 +111,9 @@ export function countExamples(body) {
 // matters" is prose about one.
 export function countComputableSteps(body) {
   let count = 0;
-  let fence = null;
-  for (const line of body.split(/\r?\n/)) {
-    const f = /^\s*(```+|~~~+)/.exec(line);
-    if (f) {
-      if (fence === null) fence = f[1][0];
-      else if (line.trim().startsWith(fence)) fence = null;
-      continue;
-    }
-    if (fence !== null) continue;
-    const step = /^\s*(?:[-*+]|\d+[.)])\s+(.*)$/.exec(line);
+  for (const t of walkLines(body)) {
+    if (t.kind !== "body") continue;
+    const step = /^\s*(?:[-*+]|\d+[.)])\s+(.*)$/.exec(t.line);
     if (step && VERB_AT_START.test(step[1].replace(/^[*_]{1,2}\s*/, "").replace(STEP_PREFIX, ""))) count++;
   }
   return count;
@@ -105,8 +128,9 @@ export function findPaths(body) {
 export function findSessionFacts(body) {
   const found = [];
   for (const line of body.split(/\r?\n/)) {
-    const hit = SESSION_PHRASES.find((re) => re.test(line));
-    if (hit) found.push(hit.exec(line)[0]);
+    for (const re of SESSION_PHRASES) {
+      for (const m of line.matchAll(re)) found.push(m[0]);
+    }
   }
   return found;
 }
@@ -130,11 +154,21 @@ const lines = (t) => {
   return text === "" ? 0 : text.split(/\r?\n/).length;
 };
 
-function walk(dir) {
+// A narrow blocklist keeps common noise (`.DS_Store`, VCS metadata, editor swaps) out of the
+// count without dropping legitimately hidden folders like `.private/`. A `realpathSync`
+// visited-set follows every legit symlink once and cuts cycles on the second visit.
+const SKIP_NAMES = new Set([".DS_Store", "Thumbs.db", ".git", ".svn", ".hg"]);
+const isEditorSwap = (name) => name.endsWith("~") || /\.sw[po]$/.test(name);
+
+function walk(dir, visited = new Set()) {
   if (!existsSync(dir)) return [];
+  const real = realpathSync(dir);
+  if (visited.has(real)) return [];
+  visited.add(real);
   return readdirSync(dir).flatMap((name) => {
+    if (SKIP_NAMES.has(name) || isEditorSwap(name)) return [];
     const p = join(dir, name);
-    return statSync(p).isDirectory() ? walk(p) : [p];
+    return statSync(p).isDirectory() ? walk(p, visited) : [p];
   });
 }
 
@@ -147,7 +181,9 @@ export function resolve(target) {
     return { kind: kindOfFile(target), main: target };
   }
   if (existsSync(join(target, "SKILL.md"))) return { kind: "skill", main: join(target, "SKILL.md") };
-  const mds = readdirSync(target).filter((n) => n.endsWith(".md") && n !== "CHANGES.md");
+  const mds = readdirSync(target).filter(
+    (n) => n.endsWith(".md") && !n.startsWith(".") && n.toLowerCase() !== "changes.md",
+  );
   if (mds.length !== 1) {
     throw new Refusal(`${target} holds no SKILL.md and no single .md to measure`);
   }
@@ -165,8 +201,11 @@ export function measure(target) {
   const refFiles = kind === "skill" ? walk(join(target, "references")) : [];
   const scriptFiles = kind === "skill" ? walk(join(target, "scripts")) : [];
   const companions = refFiles.filter((f) => f.endsWith(".md")).map((f) => readFileSync(f, "utf8"));
-  const paths = findPaths(body);
+  const uniquePaths = [...new Set(findPaths(body))];
+  // Each occurrence of a session phrase is a separate hobble, so count is raw. Paths differ:
+  // one path mentioned four times is one leak, so count is deduped there.
   const facts = findSessionFacts(body);
+  const uniqueFacts = [...new Set(facts)];
   return {
     target,
     kind,
@@ -176,8 +215,8 @@ export function measure(target) {
     examples: countExamples(body),
     references: { lines: refFiles.reduce((n, f) => n + lines(readFileSync(f, "utf8")), 0) },
     scripts: { files: scriptFiles.length },
-    absolutePaths: { count: paths.length, samples: [...new Set(paths)].slice(0, 3) },
-    sessionFacts: { count: facts.length, samples: [...new Set(facts)].slice(0, 3) },
+    absolutePaths: { count: uniquePaths.length, samples: uniquePaths.slice(0, 3) },
+    sessionFacts: { count: facts.length, samples: uniqueFacts.slice(0, 3) },
     repeatedSentences: repeatedSentences([body, ...companions]),
     computableSteps: countComputableSteps(body),
   };
@@ -219,7 +258,7 @@ if (invoked) {
   const d = args.indexOf("--diff");
   const other = d === -1 ? null : args[d + 1];
   const target = args.find((a, i) => !a.startsWith("--") && !(d !== -1 && i === d + 1));
-  if (!target || (d !== -1 && !other)) {
+  if (!target || (d !== -1 && (!other || other.startsWith("--")))) {
     console.error("usage: node scripts/measure.mjs <path> [--json] [--diff <other>]");
     process.exit(2);
   }
