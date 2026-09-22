@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - run: node --test "tests/*.mjs"
+      - run: node --test
       - name: privacy gate
         run: |
           hits=$(grep -rniE "onedrive|/Users/[a-z]|C:\\\\Users" --exclude-dir=.git --exclude=.git --exclude-dir=.github --exclude=measure.mjs . | grep -v "/Users/jane" || true)

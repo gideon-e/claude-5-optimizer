@@ -20,6 +20,8 @@ Two review passes on 0.2.0. Every change is a fix; three of them move a measured
 - `scripts/measure.mjs`: `--diff --json` is a usage error, not an ENOENT.
 - `.github/workflows/test.yml`: Node 20, 22, and 24, `fail-fast: false`; the privacy gate
   excludes `measure.mjs` by file, not by any line that names it.
+- `package.json`, the workflow: the test command is a bare `node --test`. Node 20 does not
+  expand a quoted glob, and the runner finds `tests/test-*.mjs` by itself on every version.
 - `README.md`: the fixture reads `session facts: 2`.
 
 ## 0.2.0 — 2026-09-21
