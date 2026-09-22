@@ -2,6 +2,21 @@
 
 All notable changes to this plugin are recorded here. Versions follow semver.
 
+## 0.2.0 — 2026-09-21
+
+- `references/recipe.md`: check 6 is the compute-or-infer test — compute what can be
+  computed, infer the rest — with the signal list of work code does that authors hand to the
+  model anyway.
+- `agents/goal-reader.md`: a `Steps` table, one row per step the target asks the model to
+  perform, marked Compute or Infer with what ships. Check 6's row points at it.
+- `agents/rewriter.md`: the Steps table is the script list, and the report ends with how many
+  steps now run as code and how many judgments are left.
+- `scripts/measure.mjs`: a `computable steps` count, exported as `COMPUTABLE_VERBS`, in the
+  text output, `--json`, and `--diff`. An opening "You" and a rule word are skipped, so
+  "You MUST count the attendees" counts as the step it is. The fixture reads 4.
+- `skills/optimize`: the Computed/Inferred line under the measured block.
+- `README.md`: the fixture numbers include the new count.
+
 ## 0.1.2 — 2026-09-21
 
 - `skills/optimize`: an `undo` verb beside `apply`, and the before → after block comes from

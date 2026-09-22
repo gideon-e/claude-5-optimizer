@@ -5,7 +5,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, copyFileSync, rmSync, realpathSy
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { measure, renderDiff, countRules, countExamples, repeatedSentences, detectKind, description, splitHeader, Refusal } from '../scripts/measure.mjs';
+import { measure, renderDiff, countRules, countExamples, countComputableSteps, repeatedSentences, detectKind, description, splitHeader, Refusal } from '../scripts/measure.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const fixture = join(root, 'tests/fixtures/hobbled');
@@ -20,6 +20,10 @@ test('the hobbled fixture measures as the spec describes it', () => {
   assert.deepEqual(m.absolutePaths.samples, ['/Users/jane/notes']);
   assert.equal(m.sessionFacts.count, 1);
   assert.equal(m.repeatedSentences, 2);
+  // Four steps open with a computable verb, past "You" and the rule word: rules 3 (count)
+  // and 10 (save), and procedure steps 5 (count) and 13 (save). Procedure step 12 opens
+  // with "The" and uses count as a noun, and rule 2 lists attendees, not files.
+  assert.equal(m.computableSteps, 4);
   assert.equal(m.references.lines, 0);
   assert.equal(m.scripts.files, 0);
   assert.ok(m.body.words > 400 && m.description.chars > 0);
@@ -42,6 +46,25 @@ test('rule words count once per line, whole words only', () => {
 test('illustrations count from headings, e.g. lines, and transcript fences', () => {
   const body = '## Example 1\nsome prose\ne.g. this one\n```transcript\nuser: hi\n```\n```js\nconst Example = 1;\n```\n';
   assert.equal(countExamples(body), 3);
+});
+
+test('a step counts when a computable verb opens it, through a bold marker', () => {
+  assert.equal(countComputableSteps('1. Count the attendees\n'), 1);
+  assert.equal(countComputableSteps('- **Count** the attendees\n'), 1);
+  assert.equal(countComputableSteps('2. **Look up** the code in the table\n'), 1);
+  assert.equal(countComputableSteps('3. You MUST count the attendees yourself\n'), 1);
+  assert.equal(countComputableSteps('- you should save the file\n'), 1);
+  assert.equal(countComputableSteps('1. Open the transcript file.\n'), 0);
+  assert.equal(countComputableSteps('1. You MUST read the entire transcript\n'), 0);
+  assert.equal(countComputableSteps('2. You MUST list every attendee by full name\n'), 0);
+  assert.equal(countComputableSteps('2. List the files in the folder\n'), 1);
+});
+
+test('the verb has to open the step, and code fences are not steps', () => {
+  assert.equal(countComputableSteps('- The count matters to Jane.\n'), 0);
+  assert.equal(countComputableSteps('Count the attendees yourself.\n'), 0);
+  assert.equal(countComputableSteps('- counting is not the verb\n'), 0);
+  assert.equal(countComputableSteps('```\n- sort the rows\n```\n'), 0);
 });
 
 test('a sentence of eight or more words counts when it appears twice', () => {
@@ -79,8 +102,10 @@ test('the command line prints text and --json prints the same object', () => {
   const script = join(root, 'scripts/measure.mjs');
   const text = execFileSync('node', [script, fixture], { encoding: 'utf8' });
   assert.match(text, /rules: 12 \(MUST 7, NEVER 4, ALWAYS 1\)/);
+  assert.match(text, /repeated sentences: 2   computable steps: 4/);
   const json = JSON.parse(execFileSync('node', [script, fixture, '--json'], { encoding: 'utf8' }));
   assert.equal(json.rules.total, 12);
+  assert.equal(json.computableSteps, 4);
   assert.equal(json.kind, 'skill');
 });
 
@@ -146,7 +171,7 @@ test('--diff prints the before to after block the skill reports', () => {
   assert.equal(lines[2], 'before \u2192 after');
   assert.equal(lines[3], 'body: 67 \u2192 32 lines \u00b7 583 \u2192 206 words');
   assert.equal(lines[4], 'rules: 12 \u2192 2     samples: 3 \u2192 0     absolute paths: 1 \u2192 0     session facts: 1 \u2192 0');
-  assert.equal(lines[5], 'references: 0 \u2192 37 lines   scripts: 0 \u2192 1 file   repeated sentences: 2 \u2192 0');
+  assert.equal(lines[5], 'references: 0 \u2192 37 lines   scripts: 0 \u2192 1 file   repeated sentences: 2 \u2192 0   computable steps: 4 \u2192 0');
   assert.equal(lines.length, 6);
 });
 

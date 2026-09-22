@@ -47,9 +47,13 @@ references, the project file, a tool description. One copy, in the place closest
 three steps is the signal. Pass when the file states the outcome, the tools, the stakes, and
 the shape of the output, and leaves the sequencing to the model.
 
-**6. A repeated step that calls the model.** Anything that counts, sorts, renames, copies,
-compares, formats, or date-stamps on every run. Pass when that step ships as a script or a
-data file (§5 below).
+**6. Compute or infer.** Compute what can be computed. Infer the rest. Pass when every step
+the code could do ships as code, and every step the model still does at run time is a
+judgment someone can name. The signal is the work authors hand to the model anyway: count,
+sort, rename, copy, compare, format, date-stamp, check a file exists, look a thing up in a
+fixed table, validate a shape, parse a known format, compute a date from a rule, list files
+matching a pattern, detect duplicates. Hunt for these in every target. §5 classifies what is
+left.
 
 **7. No reference the output can be checked against.** Pass when a file that produces a
 document, a design, or code also names a rubric, a schema, a test, or a mockup the result is

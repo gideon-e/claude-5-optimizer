@@ -54,11 +54,12 @@ body: 67 lines · 583 words     description: 268 chars
 rules: 12 (MUST 7, NEVER 4, ALWAYS 1)   examples: 3
 references: 0 lines   scripts: 0 files
 absolute paths: 1 (/Users/jane/notes)   session facts: 1 (remember that)
-repeated sentences: 2
+repeated sentences: 2   computable steps: 4
 ```
 
 Twelve rules, three worked cases, a home-directory path, a preference baked into the file, a
 thirteen-step procedure, and a step that asks the model to count attendees on every run. The
+computable-steps count is a signal the reader checks by hand, not a verdict. The
 result of one real run is checked in at `tests/fixtures/hobbled-after/`, with its
 `CHANGES.md`. The skill's own report on that run:
 
@@ -66,7 +67,9 @@ result of one real run is checked in at `tests/fixtures/hobbled-after/`, with it
 before → after
 body: 67 → 32 lines · 583 → 206 words
 rules: 12 → 2     samples: 3 → 0     absolute paths: 1 → 0     session facts: 1 → 0
-references: 0 → 37 lines   scripts: 0 → 1 file   repeated sentences: 2 → 0
+references: 0 → 37 lines   scripts: 0 → 1 file   repeated sentences: 2 → 0   computable steps: 4 → 0
+
+Computed: 3 steps now run as code. Inferred: 3 steps the model still does, each named.
 
 Kept verbatim: 3 lines the author knew and judgment cannot reach
 Losses: none
@@ -74,9 +77,10 @@ Losses: none
 Apply it, or discard it?
 ```
 
-The counting, the dated filename, and the already-exists check became a script. The output shape
-became a template the write-up is checked against, which let the thirteen steps and the
-three cases go. The two rules that survived are the two that protect a stake: never
+The counting, the dated filename, and the already-exists check became a script; what is left
+to the model is who was present, what was decided, and who owns each follow-up. The output
+shape became a template the write-up is checked against, which let the thirteen steps and
+the three cases go. The two rules that survived are the two that protect a stake: never
 report a decision the transcript does not contain, and ask before writing over a file. The
 folder fact stayed, moved from a home-directory path to a `config.md` the skill reads.
 
