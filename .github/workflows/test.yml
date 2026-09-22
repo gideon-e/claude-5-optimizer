@@ -4,7 +4,7 @@ on:
     branches: [main]
   pull_request:
 jobs:
-  test:
+  node:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -16,6 +16,13 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: node --test
+  # The one check `main` requires by name. It needs every matrix leg, so a red leg blocks
+  # the merge, and the privacy gate runs here once rather than once per Node version.
+  test:
+    needs: node
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - name: privacy gate
         run: |
           hits=$(grep -rniE "onedrive|/Users/[a-z]|C:\\\\Users" --exclude-dir=.git --exclude=.git --exclude-dir=.github --exclude=measure.mjs . | grep -v "/Users/jane" || true)

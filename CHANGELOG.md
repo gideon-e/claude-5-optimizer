@@ -22,6 +22,8 @@ Two review passes on 0.2.0. Every change is a fix; three of them move a measured
   excludes `measure.mjs` by file, not by any line that names it.
 - `package.json`, the workflow: the test command is a bare `node --test`. Node 20 does not
   expand a quoted glob, and the runner finds `tests/test-*.mjs` by itself on every version.
+- `.github/workflows/test.yml`: the matrix job is `node`; a `test` job that needs every leg
+  is the one check `main` requires by name, and the privacy gate runs there once.
 - `README.md`: the fixture reads `session facts: 2`.
 
 ## 0.2.0 — 2026-09-21
