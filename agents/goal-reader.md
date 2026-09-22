@@ -64,6 +64,7 @@ Hobbles:
 
 Steps:
 | Step | Compute or Infer | What ships |
+|---|---|---|
 | "<verbatim, short>" | Compute | scripts/<name>.mjs or references/<file> |
 | "<verbatim, short>" | Infer | <the judgment, five words> |
 

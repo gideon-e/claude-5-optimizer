@@ -12,7 +12,8 @@ All notable changes to this plugin are recorded here. Versions follow semver.
 - `agents/rewriter.md`: the Steps table is the script list, and the report ends with how many
   steps now run as code and how many judgments are left.
 - `scripts/measure.mjs`: a `computable steps` count, exported as `COMPUTABLE_VERBS`, in the
-  text output, `--json`, and `--diff`.
+  text output, `--json`, and `--diff`. An opening "You" and a rule word are skipped, so
+  "You MUST count the attendees" counts as the step it is.
 - `skills/optimize`: the Computed/Inferred line under the measured block.
 - `README.md`: the fixture numbers include the new count.
 

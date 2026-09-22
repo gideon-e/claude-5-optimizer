@@ -22,8 +22,11 @@ const SESSION_PHRASES = [/remember that/i, /the user prefers/i, /last time/i];
 export const COMPUTABLE_VERBS = [
   "count", "sort", "rename", "copy", "compare", "format", "date", "stamp", "check",
   "look up", "validate", "parse", "list", "detect", "calculate", "compute", "number",
-  "total", "sum", "find duplicates", "dedupe",
+  "total", "sum", "find duplicates", "dedupe", "save",
 ];
+// "You MUST count the attendees" is the same step as "Count the attendees", so an opening
+// "You" and a rule word are skipped before the verb is read.
+const STEP_PREFIX = /^(?:you\s+)?(?:(?:must|never|always|should)\s+)?/i;
 const VERB_AT_START = new RegExp(`^(?:${COMPUTABLE_VERBS.map((v) => v.replace(/ /g, "\\s+")).join("|")})\\b`, "i");
 
 export function splitHeader(text) {
@@ -88,7 +91,7 @@ export function countComputableSteps(body) {
     }
     if (fence !== null) continue;
     const step = /^\s*(?:[-*+]|\d+[.)])\s+(.*)$/.exec(line);
-    if (step && VERB_AT_START.test(step[1].replace(/^[*_]{1,2}\s*/, ""))) count++;
+    if (step && VERB_AT_START.test(step[1].replace(/^[*_]{1,2}\s*/, "").replace(STEP_PREFIX, ""))) count++;
   }
   return count;
 }
