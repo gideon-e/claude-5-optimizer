@@ -21,7 +21,7 @@ const SESSION_PHRASES = [/remember that/i, /the user prefers/i, /last time/i];
 // the author handed to the model anyway: compute what can be computed, infer the rest.
 export const COMPUTABLE_VERBS = [
   "count", "sort", "rename", "copy", "compare", "format", "date", "stamp", "check",
-  "look up", "validate", "parse", "list", "detect", "calculate", "compute", "number",
+  "look up", "validate", "parse", "list files", "list the files", "detect", "calculate", "compute", "number",
   "total", "sum", "find duplicates", "dedupe", "save",
 ];
 // "You MUST count the attendees" is the same step as "Count the attendees", so an opening

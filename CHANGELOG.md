@@ -13,7 +13,7 @@ All notable changes to this plugin are recorded here. Versions follow semver.
   steps now run as code and how many judgments are left.
 - `scripts/measure.mjs`: a `computable steps` count, exported as `COMPUTABLE_VERBS`, in the
   text output, `--json`, and `--diff`. An opening "You" and a rule word are skipped, so
-  "You MUST count the attendees" counts as the step it is.
+  "You MUST count the attendees" counts as the step it is. The fixture reads 4.
 - `skills/optimize`: the Computed/Inferred line under the measured block.
 - `README.md`: the fixture numbers include the new count.
 
