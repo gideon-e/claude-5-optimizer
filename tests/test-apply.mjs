@@ -162,3 +162,17 @@ test('a folder swap that fails on the second move puts the original back', (t) =
   assert.ok(!existsSync(`${target}.before`), 'nothing is left at .before');
   assert.ok(existsSync(`${target}.optimized`), 'the optimized copy is untouched');
 });
+
+test('a single-file swap that fails on the second move puts the original back', (t) => {
+  const { root, target } = agentFixture();
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  let calls = 0;
+  const rename = (from, to) => {
+    if (++calls === 2) throw new Error('boom');
+    renameSync(from, to);
+  };
+  assert.throws(() => apply(target, { rename }), /boom/);
+  assert.equal(readFileSync(target, 'utf8'), 'old agent\n');
+  assert.ok(!existsSync(`${target}.before`), 'nothing is left at .before');
+  assert.ok(existsSync(`${target}.optimized`), 'the optimized copy is untouched');
+});

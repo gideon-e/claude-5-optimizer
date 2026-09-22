@@ -2,6 +2,30 @@
 
 All notable changes to this plugin are recorded here. Versions follow semver.
 
+## 0.2.1 — 2026-09-21
+
+Two review passes on 0.2.0. Every change is a fix; three of them move a measured number.
+
+- `scripts/apply.mjs`: a single-file swap that fails on the second move puts the original
+  back, as the folder swap already did. A rollback that itself fails lands on `.cause`, so
+  the root error is the one reported.
+- `scripts/measure.mjs`: one fence tracker behind `countRules`, `countExamples`, and
+  `countComputableSteps`. A rule word inside a code fence is no longer a rule; an unclosed
+  trailing fence is prose, not code.
+- `scripts/measure.mjs`: session facts count every occurrence, so two "remember that" on one
+  line are two. Absolute paths count distinct paths. Samples are deduped in both.
+- `scripts/measure.mjs`: `references/` and `scripts/` skip `.DS_Store`, VCS folders, and
+  editor swaps, follow symlinks, and cut cycles. A hidden `.md` beside an agent file no
+  longer stops the resolver; `changes.md` is skipped whatever its case.
+- `scripts/measure.mjs`: `--diff --json` is a usage error, not an ENOENT.
+- `.github/workflows/test.yml`: Node 20, 22, and 24, `fail-fast: false`; the privacy gate
+  excludes `measure.mjs` by file, not by any line that names it.
+- `package.json`, the workflow: the test command is a bare `node --test`. Node 20 does not
+  expand a quoted glob, and the runner finds `tests/test-*.mjs` by itself on every version.
+- `.github/workflows/test.yml`: the matrix job is `node`; a `test` job that needs every leg
+  is the one check `main` requires by name, and the privacy gate runs there once.
+- `README.md`: the fixture reads `session facts: 2`.
+
 ## 0.2.0 — 2026-09-21
 
 - `references/recipe.md`: check 6 is the compute-or-infer test — compute what can be

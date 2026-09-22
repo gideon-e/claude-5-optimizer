@@ -53,7 +53,7 @@ target: tests/fixtures/hobbled   kind: skill
 body: 67 lines · 583 words     description: 268 chars
 rules: 12 (MUST 7, NEVER 4, ALWAYS 1)   examples: 3
 references: 0 lines   scripts: 0 files
-absolute paths: 1 (/Users/jane/notes)   session facts: 1 (remember that)
+absolute paths: 1 (/Users/jane/notes)   session facts: 2 (remember that, the user prefers)
 repeated sentences: 2   computable steps: 4
 ```
 
@@ -66,7 +66,7 @@ result of one real run is checked in at `tests/fixtures/hobbled-after/`, with it
 ```
 before → after
 body: 67 → 32 lines · 583 → 206 words
-rules: 12 → 2     samples: 3 → 0     absolute paths: 1 → 0     session facts: 1 → 0
+rules: 12 → 2     samples: 3 → 0     absolute paths: 1 → 0     session facts: 2 → 0
 references: 0 → 37 lines   scripts: 0 → 1 file   repeated sentences: 2 → 0   computable steps: 4 → 0
 
 Computed: 3 steps now run as code. Inferred: 3 steps the model still does, each named.
@@ -95,7 +95,8 @@ folder fact stayed, moved from a home-directory path to a `config.md` the skill 
 | `scripts/apply.mjs` | the reversible swap |
 | `references/recipe.md` | the depth both agents read |
 
-Node, no dependencies. `npm test` runs `node --test "tests/*.mjs"`, which is the whole test command.
+Node, no dependencies. `npm test` runs `node --test`, which is the whole test command: the
+runner finds `tests/test-*.mjs` on its own, on Node 20 as well as later.
 
 ## Security
 
