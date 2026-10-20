@@ -2,7 +2,7 @@
 
 Semver. Detail is in the git history.
 
-## Unreleased
+## 0.2.2 — 2026-10-20
 
 - Skill, recipe, agents, README, and this file cut to about a third. Same behaviour.
 
