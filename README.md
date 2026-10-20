@@ -1,9 +1,7 @@
 # claude-5-optimizer
 
 Most skills were written for models that needed hand-holding: MUST/NEVER lists, worked
-transcripts, thirteen-step procedures. Claude 5 does worse with all that, not better.
-
-This plugin reads a skill, agent, or `CLAUDE.md`, finds the few lines only its author knew,
+transcripts, long numbered procedures. Claude 5 does worse with all that. This plugin reads a skill, agent, or `CLAUDE.md`, finds the few lines only its author knew,
 and writes a shorter copy beside it that keeps those and cuts the rest. You decide whether
 to swap it in. The thinking is in [references/recipe.md](references/recipe.md).
 
@@ -47,9 +45,7 @@ before overwriting a file.
 | `agents/rewriter.md` | writes `<path>.optimized/` and `CHANGES.md` |
 | `scripts/measure.mjs`, `scripts/apply.mjs` | the counts, and the reversible swap |
 
-No dependencies; `npm test` runs `node --test`. The scripts make no network calls and run no
-shell. The agents' `Bash(node:*)` is broader than the two scripts they call; the reader's
-read-only promise rests on its instructions. A target is untrusted input. See
+No dependencies; `npm test` runs `node --test`. What the plugin can reach:
 [SECURITY.md](SECURITY.md).
 
 MIT.
